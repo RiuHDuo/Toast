@@ -29,13 +29,17 @@ class ToastController: ObservableObject{
     }
     
     let interval: TimeInterval = 0.2
+#if os(iOS)
     let haptic = UINotificationFeedbackGenerator()
+#endif
     
     func hideKeyboard(){
+#if os(iOS)
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+#endif
     }
     
-    func update(){
+    func update(height: CGFloat){
         if !self.toastList.isEmpty && isShowing == false {
             self.isShowing = true
             hideKeyboard()
@@ -47,9 +51,11 @@ class ToastController: ObservableObject{
                 return
             }
             let duration = msg.duration
-            self.offset =  msg.style.position == .top ? 64 - UIScreen.main.bounds.height / 2 : msg.style.position == .center ? 0 : UIScreen.main.bounds.height / 2 - 64
+            self.offset =  msg.style.position == .top ? 64 - height / 2 : msg.style.position == .center ? 0 : height / 2 - 64
             if self.message?.style.hasFeedback == true{
+#if os(iOS)
                 haptic.notificationOccurred(.warning)
+#endif
             }
             withAnimation(.easeIn.delay(interval)){
                 opacity = 1
@@ -64,7 +70,7 @@ class ToastController: ObservableObject{
             timer?.invalidate()
             timer = Timer.scheduledTimer(withTimeInterval: duration + interval * 3 + 0.5, repeats: false, block: { _ in
                 self.isShowing = false
-                self.update()
+                self.update(height:  height)
             })
         }
     }
